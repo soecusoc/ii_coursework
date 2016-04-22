@@ -1,20 +1,44 @@
 from random import SystemRandom
 
 def generateKey(key_length):
-    "Generates a random key of given length"
+    '''Generates a random key of given length.
+    The key is of given lenght and it's a hexadecimal number.
+    
+    Args:
+        key_length (int): Desired length for the key in characters.
+        
+    Returns:
+        string: A key for encryption. Key is a hexadecimal number.
+        
+    Errors:
+        The key must be at least 1 character long. Otherwise
+        prints error message and returns value -1.
+        
+    E.g. generateKey(64) returns a 64-byte random hexadecimal number.
+    '''
+    
+    if key_length <= 0:
+        print "ERROR"
+        print "(encryption :: generateKey : Key length less than 1)"
+        print "The key must be longer than zero characters."
+        return -1
+        
     key = ""
     character = SystemRandom()
+    
     for i in range(key_length):
         #Key is a string, so adds a character in a string
         #Split turns '0xa' to 'a'
         key = key + hex(character.randrange(16)).split('x')[1]
+    
     return key
 
 def encrypt(message, key):
     "Encrypts a given message by adding given key to the message character by character"
     if len(message) > len(key):
         print "ERROR"
-        print "Key too short."
+        print "(encryption :: encrypt : Key not long enough)"
+        print "The key must be longer or as long as the message."
         return -1
     messageList = list(message)
     keyList = list(key)
