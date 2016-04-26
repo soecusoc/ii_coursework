@@ -22,7 +22,7 @@ def main():
     ini_msg = "Ekki-ekki-ekki-ekki-PTANG.\r\n"
     
     data = struct.pack("!??HH64s", False, True, len(ini_msg), 0, ini_msg)
-    sUDP_tosend.sendto(ini_msg, ((host, port)))
+    sUDP_tosend.sendto(data, ((host, port)))
     print data
     
     reply, addr = sUDP_torecv.recvfrom(1024)
