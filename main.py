@@ -8,7 +8,7 @@ def main():
     sUDP_torecv.bind(('', 10000))
     
     host = socket.gethostbyname('ii.virtues.fi')
-    print socket.gethostbyname(socket.gethostname())
+    my_ip = socket.gethostbyname(socket.gethostname())
     
     sTCP = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sTCP.connect((host, 10000))
@@ -19,10 +19,10 @@ def main():
     print reply
     
     sUDP_tosend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ini_msg = "Ekki-ekki-ekki-ekki-PTANG."
+    ini_msg = "Ekki-ekki-ekki-ekki-PTANG.\r\n"
     
     data = struct.pack("!??HH64s", False, True, len(ini_msg), 0, ini_msg)
-    sUDP_tosend.sendto(ini_msg, ((socket.gethostname(), 10001)))
+    sUDP_tosend.sendto(ini_msg, ((host, port)))
     print data
     
     reply, addr = sUDP_torecv.recvfrom(1024)
