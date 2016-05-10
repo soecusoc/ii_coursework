@@ -36,17 +36,14 @@ def encrypt(message, key):
     "Encrypts a given message by adding given key to the message character by character"
     if len(message) > len(key):
         print "ERROR"
-        print "(encryption :: encrypt : Key not long enough)"
-        print "The key must be longer or as long as the message."
+        print "Key too short."
         return -1
     messageList = list(message)
     keyList = list(key)
     #An array for crypted message
     cryptedList = []
     for i in range(len(message)):
-        #Makes sure the ASCII character is printable
-        #After 126 comes 32
-        temp = 32 + (ord(messageList[i]) + int(keyList[i], 16) - 32) % 94
+        temp = (ord(messageList[i]) + ord(keyList[i])) % 256
         cryptedList.append(chr(temp))
     return ''.join(cryptedList)
 
@@ -61,9 +58,7 @@ def decrypt(crypted_msg, key):
     #An array for clear text message
     messageList = []
     for i in range(len(crypted_msg)):
-        #Makes sure the ASCII character is printable
-        #After 126 comes 32
-        temp = 32 + (ord(cryptedList[i]) - int(keyList[i], 16) - 32) % 94
+        temp = (ord(cryptedList[i]) - ord(keyList[i])) % 256
         messageList.append(chr(temp))
     return ''.join(messageList)
 
