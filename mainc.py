@@ -4,6 +4,8 @@ import encryption
 import struct
 from questions import answer
 
+VERBOSE = False
+
 def main():
 
     sUDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -22,6 +24,7 @@ def main():
                 print("Socket error with UDP bind", msg)
                 break
     
+    # TODO: argument vector..
     host = socket.gethostbyname('ii.virtues.fi')
     my_ip = socket.gethostbyname(socket.gethostname())
 
@@ -36,61 +39,62 @@ def main():
         helo_msg = helo_msg + key_table[i] + "\r\n"
     helo_msg = helo_msg + ".\r\n"
     
-    print helo_msg
+    if VERBOSE:
+        print helo_msg
         
     sTCP.sendall(helo_msg)
     
-
     reply = sTCP.recv(1024)
+
     key_list = sTCP.recv(4096)
+
     port = int(reply.split()[1])
-    print(reply, "port", port)
+    if VERBOSE:
+        print(reply, "port", port)
+
     #print "key list before modification"
     #print key_list
     key_list = key_list.split()[:-1]
     #print "server send:"
     #print key_list
     
-    #Apparently we can't use two sockets here for UDP
-    #sUDP_tosend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ini_msg = "Ekki-ekki-ekki-ekki-PTANG."
     data = struct.pack("!??HH64s", False, True, len(ini_msg), 0, ini_msg)
     
     sUDP.sendto(data, ((host, port)))
-    print("udp message should be sent now")
+    #print("udp message should be sent now")
     
     i = 0
     while True:
         reply2, addr = sUDP.recvfrom(4096)
 
-        #print reply2
         uncoded = struct.unpack("!??HH64s", reply2)
         #print "uncoded"
         #print uncoded
 
         EOM = uncoded[0]
-        print
-        print "EOM is:", EOM
-
+        
+        
         question = uncoded[4].strip('\x00')
         
         if not EOM:
-            print ""
-            print "question:"
-            print question
-        
+
+            if VERBOSE:
+                print "\nQuestion " + str(i+1) +  ", EOM is:", EOM
+
+
             decrypted = encryption.decrypt(question, key_list[i])
             
+            print "\nQuestion " + str(i+1) +  " from server"
             print decrypted
             
             answ = answer(decrypted)
 
-            print ""
-            print "answer:"
+            print "\nOur answer:"
             print answ
             
             crypted_answ = encryption.encrypt(answ, key_table[i+1])
-            print crypted_answ
+            #print crypted_answ
             
             data = struct.pack("!??HH64s", False, True, len(answ), 0, crypted_answ)
             sUDP.sendto(data, ((host, port)))
@@ -107,8 +111,47 @@ def main():
     sUDP.close()
     sTCP.close()
 
+
+def printHelp():
+    print "\nAvailable parameters for this script are :\n"
+    print "Verbose     -v"
+    print "Help        -h"
+    print "Proxy       -p" # Might not need this here
+
 if __name__ == '__main__':
     try:
+        '''What format should we enforce?
+                - python mainc.py ii.virtues.fi ?
+
+           The nice thing bout that format would be that the address
+           would always be in the same index of the argument vectors,
+           and we wouldn't have to attempt to parse it out. 
+           Timo make a call. Force sys.argv[1] to be either ii.virtues.fi,
+           localhost or proxy?
+        '''
+        for i in range(len(sys.argv)):
+            
+            if len(sys.argv) < 2:
+                print "\nYou didn't give sufficient arguments for this script!"
+                printHelp()
+                sys.exit(1)
+
+            if "-h" in sys.argv:
+                printHelp()
+                sys.exit(1)
+
+            if "-v" in sys.argv:
+                VERBOSE = True
+            else:
+                VERBOSE = False
+
+            if "-p" in sys.argv:
+                pass
+                # Do something to toggle proxy, maybe with flag such as with verbose
+
+        '''This would work with the above proposed format'''
+        #address = sys.argv[1] 
+        #main(address)
         main()
     except KeyboardInterrupt:
         print "Shutting down"
