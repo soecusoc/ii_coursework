@@ -128,6 +128,13 @@ if __name__ == '__main__':
            and we wouldn't have to attempt to parse it out. 
            Timo make a call. Force sys.argv[1] to be either ii.virtues.fi,
            localhost or proxy?
+           
+           My prefered format:
+                - python mainc.py ii.virtues.fi
+                - python mainc.py proxy
+           If sys.argv[1] == "proxy"
+                addr = raw_input("Give addres:\n>")
+                port = raw_input("Give port:\n>")
         '''
         for i in range(len(sys.argv)):
             
