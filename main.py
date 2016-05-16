@@ -63,7 +63,8 @@ def main():
     data = struct.pack("!??HH64s", False, True, len(ini_msg), 0, ini_msg)
     
     sUDP.sendto(data, ((host, port)))
-    #print("udp message should be sent now")
+    if VERBOSE:
+        print("udp message should be sent now")
     
     i = 0
     while True:
@@ -116,44 +117,24 @@ def main():
 def printHelp():
     print "\nAvailable parameters for this script are :\n"
     print "Verbose     -v"
-    print "Help        -h"
+    print "Help        -h, -help"
 
 if __name__ == '__main__':
     try:
-        '''What format should we enforce?
-                - python mainc.py ii.virtues.fi ?
 
-           The nice thing bout that format would be that the address
-           would always be in the same index of the argument vectors,
-           and we wouldn't have to attempt to parse it out. 
-           Timo make a call. Force sys.argv[1] to be either ii.virtues.fi,
-           localhost or proxy?
+        if "-help" in sys.argv:
+            printHelp()
+            sys.exit(1)
 
-           Never mind, use raw_input to ask user for address.
-        '''
-        for i in range(len(sys.argv)):
-            
-            #if len(sys.argv) < 2:
-            #    print "\nYou didn't give sufficient arguments for this script!"
-            #    printHelp()
-            #    sys.exit(1)
+        if "-h" in sys.argv:
+            printHelp()
+            sys.exit(1)
 
-            if "-help" in sys.argv:
-                printHelp()
-                sys.exit(1)
+        if "-v" in sys.argv:
+            VERBOSE = True
+        else:
+            VERBOSE = False
 
-            if "-h" in sys.argv:
-                printHelp()
-                sys.exit(1)
-
-            if "-v" in sys.argv:
-                VERBOSE = True
-            else:
-                VERBOSE = False
-
-            #if "-p" in sys.argv:
-            #    pass
-            #    # Do something to toggle proxy, maybe with flag such as with verbose
 
         '''I guess this is still an option, just not a real good one,
         program might throw errors if user doesn't know correct input format.''' 
