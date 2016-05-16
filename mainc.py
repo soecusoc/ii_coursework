@@ -24,8 +24,9 @@ def main():
                 print("Socket error with UDP bind", msg)
                 break
     
-    # TODO: argument vector..
-    host = socket.gethostbyname('ii.virtues.fi')
+    user_input = raw_input("\nGive address of the server you wish to communicate with\n\n>")
+    host = socket.gethostbyname(user_input)
+    #host = socket.gethostbyname('ii.virtues.fi')
     my_ip = socket.gethostbyname(socket.gethostname())
 
     key_table = []
@@ -111,7 +112,7 @@ def main():
     sUDP.close()
     sTCP.close()
 
-
+# Forgot bout the argparse module, oh well.
 def printHelp():
     print "\nAvailable parameters for this script are :\n"
     print "Verbose     -v"
@@ -128,11 +129,17 @@ if __name__ == '__main__':
            and we wouldn't have to attempt to parse it out. 
            Timo make a call. Force sys.argv[1] to be either ii.virtues.fi,
            localhost or proxy?
+
+           Never mind, use raw_input to ask user for address.
         '''
         for i in range(len(sys.argv)):
             
-            if len(sys.argv) < 2:
-                print "\nYou didn't give sufficient arguments for this script!"
+            #if len(sys.argv) < 2:
+            #    print "\nYou didn't give sufficient arguments for this script!"
+            #    printHelp()
+            #    sys.exit(1)
+
+            if "-help" in sys.argv:
                 printHelp()
                 sys.exit(1)
 
@@ -149,7 +156,8 @@ if __name__ == '__main__':
                 pass
                 # Do something to toggle proxy, maybe with flag such as with verbose
 
-        '''This would work with the above proposed format'''
+        '''I guess this is still an option, just not a real good one,
+        program might throw errors if user doesn't know correct input format.''' 
         #address = sys.argv[1] 
         #main(address)
         main()
