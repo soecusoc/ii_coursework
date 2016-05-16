@@ -35,7 +35,7 @@ def main():
             
     sTCP = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sTCP.connect((host, 10000))
-    helo_msg = "HELO " + str(UDP_port) + " C\r\n"
+    helo_msg = "HELO " + str(UDP_port) + " MC\r\n"
     for i in range(len(key_table)):
         helo_msg = helo_msg + key_table[i] + "\r\n"
     helo_msg = helo_msg + ".\r\n"
@@ -66,45 +66,135 @@ def main():
     if VERBOSE:
         print("udp message should be sent now")
     
+    def parseMultipart(j):
+        print "\nparseMultipart\n"
+
+        ret = ""
+        _continue = True
+
+        while _continue:
+            
+            reply2, _addr = sUDP.recvfrom(200)
+
+            uncoded = struct.unpack("!??HH64s", reply2)
+
+
+            uncrypted_question = uncoded[4].strip('\x00')
+
+            decrypted = encryption.decrypt(uncrypted_question, key_list[j])
+            
+            print "\ndecrypted"
+            print decrypted
+
+            ret = ret + decrypted
+            print "\nret"
+            print ret
+            j = j + 1
+            if uncoded[3] == 0:
+                _continue = False
+
+        if uncoded[0] == False:
+            
+            #print "EOM is false"
+            return (ret, _addr, False)
+
+        else:
+            #print "EOM is true"
+            return (ret, _addr, True)
+
+    
     i = 0
     while True:
-        reply2, addr = sUDP.recvfrom(4096)
 
-        uncoded = struct.unpack("!??HH64s", reply2)
-        #print "uncoded"
-        #print uncoded
+        question, addr, EOM = parseMultipart(i)
 
-        EOM = uncoded[0]
-        
-        
-        question = uncoded[4].strip('\x00')
-        
         if not EOM:
 
             if VERBOSE:
                 print "\nQuestion " + str(i+1) +  ", EOM is:", EOM
 
-
-            decrypted = encryption.decrypt(question, key_list[i])
-            
             print "\nQuestion " + str(i+1) +  " from server"
-            print decrypted
-            
-            answ = answer(decrypted)
+            print question
 
-            print "\nOur answer:"
-            print answ
-            
-            crypted_answ = encryption.encrypt(answ, key_table[i+1])
-            #print crypted_answ
-            
-            data = struct.pack("!??HH64s", False, True, len(answ), 0, crypted_answ)
-            sUDP.sendto(data, ((host, port)))
-            
-            #print "sent: " + data
-            
-            
-            i = i + 1
+            count = question.count('?')
+
+            print "count"
+            print count
+
+            if count > 1:
+                question = question.split('?')
+
+
+                answers = ""
+
+                x = count 
+                for n in range(x):
+
+
+                    _question = question[n] + "?"
+
+                    print "Question"
+                    print _question
+
+                    answ = answer(_question)
+
+                    print "\nOur answer:"
+                    print answ
+                    
+                    answers = answers + answ
+
+                    #crypted_answ = encryption.encrypt(answ, key_table[i+1])
+                    #print crypted_answ
+                    
+                    #data = struct.pack("!??HH64s", False, True, len(answ), 0, crypted_answ)
+                    #sUDP.sendto(data, ((host, port)))
+                    
+                    #print "sent: " + data
+                    i = i + 1
+
+                size = sys.getsizeof(answers)
+
+                #print "size"
+                #print size
+
+                temp2 = ""
+
+                if size > 64:
+
+                    for k in range(len(answers)):
+
+                        temp2 = temp2 + answers[k]
+
+                        if sys.getsizeof(temp2) == 64:
+
+                            crypted_answ = encryption.encrypt(temp2, key_table[i+1])
+                            data = struct.pack("!??HH64s", False, True, len(answ), 0, crypted_answ)
+                            sUDP.sendto(data, ((host, port)))
+
+                            temp2 = ""
+
+                    crypted_answ = encryption.encrypt(temp2, key_table[i+1])
+                    data = struct.pack("!??HH64s", False, True, len(answ), 0, crypted_answ)
+                    sUDP.sendto(data, ((host, port)))
+
+
+                    #crypted_answ = encryption.encrypt(answ, key_table[i+1])
+                break
+            else:
+
+                answ = answer(question)
+
+                print "\nOur answer:"
+                print answ
+                
+                crypted_answ = encryption.encrypt(answ, key_table[i+1])
+                #print crypted_answ
+                
+                data = struct.pack("!??HH64s", False, True, len(answ), 0, crypted_answ)
+                sUDP.sendto(data, ((host, port)))
+                
+                #print "sent: " + data
+                i = i + 1
         else:
             print question
             break
